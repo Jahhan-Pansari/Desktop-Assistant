@@ -123,27 +123,27 @@ def open_first_result(query):
 
 
 def open_application(query):
-    for app_name, path in app_paths.items():
-        if app_name in query:
-            try:
-                speak(f"Opening {app_name}")
-                os.startfile(path)
-                return
-            except Exception:
-                speak(f"Sorry, I couldn't open {app_name}.")
-                return
-    if 'youtube' in query:
-        speak("Opening YouTube")
-        webbrowser.open("https://www.youtube.com")
-    elif 'google' in query:
-        speak("Opening Google")
-        webbrowser.open("https://www.google.com")
-    elif 'gmail' in query:
-        speak("Opening Gmail")
-        webbrowser.open("https://mail.google.com/")
-    else:
-        speak("I don’t have that app yet, but I will open the first result for you")
-        open_first_result(query)
+
+    from groq import Groq
+
+    client = Groq(api_key="API_KEY_HERE")
+
+    completion = client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[
+            {"role": "system", "content": "Only output the direct link of the website asked. No text, no extra words."},
+            {"role": "user", "content": query}
+        ],
+        stream=True
+    )
+
+    for chunk in completion:
+        if chunk.choices[0].delta.content:
+            responseonquery = chunk.choices[0].delta.content, end=""
+            print(responseonquery)
+            webbrowser.open(responseonquery)
+
+
 
 
 def executeCommand(query):
@@ -215,3 +215,4 @@ if __name__ == "__main__":
     wishMe()
     speak("Im Assistant. How can I help you?")
     main_cycle()
+
